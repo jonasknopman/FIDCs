@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Carteira Z — Monitoramento de FIDCs</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg:     #F5F4F0;
+    --card:   #FFFFFF;
+    --navy:   #1A2744;
+    --green:  #1E5C3A;
+    --green-lt: #D1FAE5;
+    --red:    #AE1C1C;
+    --red-lt: #FEE2E2;
+    --amber:  #92400E;
+    --amber-lt: #FEF3C7;
+    --slate:  #4B5563;
+    --muted:  #9CA3AF;
+    --rule:   #E5E3DC;
+  }
+  body {
+    font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--navy);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Header ── */
+  header {
+    background: var(--navy);
+    padding: 16px 0;
+    position: sticky; top: 0; z-index: 100;
+    border-bottom: 3px solid #2D6A4F;
+  }
+  header .inner {
+    max-width: 1040px; margin: 0 auto; padding: 0 24px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    background: var(--navy);
+    padding: 52px 0 44px;
+  }
+  .hero .inner {
+    max-width: 1040px; margin: 0 auto; padding: 0 24px;
+  }
+  .hero-eyebrow {
+    font-size: 11px; letter-spacing: .18em; text-transform: uppercase;
+    color: #6EE7B7; margin-bottom: 12px;
+  }
+  .hero h1 {
+    font-family: Georgia, serif;
+    font-size: clamp(26px, 4vw, 38px);
+    font-weight: normal; color: #fff;
+    line-height: 1.2; margin-bottom: 10px;
+  }
+  .hero p {
+    color: #94A3B8; font-size: 14px; max-width: 560px;
+  }
+
+  /* ── Main ── */
+  main {
+    flex: 1;
+    max-width: 1040px; margin: 0 auto;
+    padding: 48px 24px 64px;
+    width: 100%;
+  }
+
+  /* ── Section header ── */
+  .section-head {
+    display: flex; align-items: baseline;
+    justify-content: space-between;
+    border-bottom: 2px solid var(--navy);
+    padding-bottom: 10px; margin-bottom: 24px;
+  }
+  .section-head h2 {
+    font-family: Georgia, serif;
+    font-size: 22px; font-weight: normal;
+    color: var(--navy);
+  }
+  .section-head span {
+    font-size: 12px; color: var(--muted);
+  }
+
+  /* ── Fund grid ── */
+  .fund-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+  }
+
+  /* ── Fund card ── */
+  .fund-card {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    overflow: hidden;
+    text-decoration: none;
+    display: flex; flex-direction: column;
+    transition: box-shadow .15s, transform .15s;
+  }
+  .fund-card:hover {
+    box-shadow: 0 4px 20px rgba(26,39,68,.12);
+    transform: translateY(-2px);
+  }
+  .card-accent {
+    height: 4px;
+    background: linear-gradient(90deg, #1E5C3A, #34D399);
+  }
+  .card-body {
+    padding: 22px 24px;
+    flex: 1; display: flex; flex-direction: column;
+  }
+  .card-eyebrow {
+    font-size: 10px; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 8px;
+  }
+  .card-title {
+    font-family: Georgia, serif;
+    font-size: 20px; font-weight: normal;
+    color: var(--navy); margin-bottom: 4px; line-height: 1.3;
+  }
+  .card-tag {
+    font-size: 11px; color: var(--slate); margin-bottom: 16px;
+  }
+  .card-stats {
+    display: flex; gap: 18px; margin-bottom: 16px;
+    flex-wrap: wrap;
+    padding-top: 14px; border-top: 1px solid var(--rule);
+  }
+  .stat-item { display: flex; flex-direction: column; gap: 2px; }
+  .stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+  .stat-val { font-family: Georgia, serif; font-size: 16px; }
+  .stat-val.pos { color: var(--green); }
+  .stat-val.neg { color: var(--red); }
+  .stat-val.warn { color: var(--amber); }
+  .card-desc {
+    font-size: 13px; color: var(--slate); line-height: 1.45;
+    margin-top: auto;
+  }
+  .card-footer {
+    padding: 12px 24px;
+    border-top: 1px solid var(--rule);
+    display: flex; align-items: center; justify-content: flex-end;
+    background: #FAFAF8;
+  }
+  .card-arrow { color: var(--navy); font-size: 16px; }
+
+  /* ── Footer ── */
+  footer {
+    background: var(--navy); padding: 24px 0;
+    margin-top: auto;
+  }
+  footer .inner {
+    max-width: 1040px; margin: 0 auto; padding: 0 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 10px;
+  }
+  footer p { color: #64748B; font-size: 12px; margin: 0; }
+
+  @media (max-width: 600px) {
+    .fund-grid { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ──────────────────────────────────────────────────────── -->
+<header>
+  <div class="inner">
+    <span style="font-size:12px;color:#64748B;">Uso interno e confidencial</span>
+  </div>
+</header>
+
+<!-- ── HERO ────────────────────────────────────────────────────────── -->
+<div class="hero">
+  <div class="inner">
+    <div class="hero-eyebrow">Carteira Z</div>
+    <h1>Monitoramento de FIDCs</h1>
+    <p>Relatórios mensais de acompanhamento dos fundos de investimento em direitos creditórios da carteira. Escolha um fundo para ver a série de relatórios.</p>
+  </div>
+</div>
+
+<!-- ── MAIN ────────────────────────────────────────────────────────── -->
+<main>
+
+  <div class="section-head">
+    <h2>Fundos Acompanhados</h2>
+    <span>3 fundos</span>
+  </div>
+
+  <div class="fund-grid">
+
+    <a class="fund-card" href="everest-90/index.html">
+      <div class="card-accent"></div>
+      <div class="card-body">
+        <div class="card-eyebrow">Relatório mais recente · Jul/26</div>
+        <div class="card-title">Everest 90 FIDC</div>
+        <div class="card-tag">Monoclasse · FIC · CNPJ 37.806.055/0001-01</div>
+        <div class="card-stats">
+          <div class="stat-item">
+            <span class="stat-label">Rentabilidade</span>
+            <span class="stat-val pos">+1,47%</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">PL</span>
+            <span class="stat-val">R$ 324,8 Mi</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Captação Líq.</span>
+            <span class="stat-val neg">-R$ 17,4 Mi</span>
+          </div>
+        </div>
+        <div class="card-desc">Fundo aberto, reaberto para captação desde mai/2026 — ainda abaixo do ritmo de resgates.</div>
+      </div>
+      <div class="card-footer"><span class="card-arrow">→</span></div>
+    </a>
+
+    <a class="fund-card" href="artesanal/index.html">
+      <div class="card-accent"></div>
+      <div class="card-body">
+        <div class="card-eyebrow">Relatório mais recente · Jul/26</div>
+        <div class="card-title">Artesanal FIDC</div>
+        <div class="card-tag">Multiclasse · FIC · CNPJ 20.441.301/0001-68</div>
+        <div class="card-stats">
+          <div class="stat-item">
+            <span class="stat-label">Rentabilidade</span>
+            <span class="stat-val pos">+1,49%</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">PL</span>
+            <span class="stat-val">R$ 2.530,3 Mi</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Captação Líq.</span>
+            <span class="stat-val neg">-R$ 38,9 Mi</span>
+          </div>
+        </div>
+        <div class="card-desc">Fundo aberto para captação e resgate. Maior fundo da carteira em PL.</div>
+      </div>
+      <div class="card-footer"><span class="card-arrow">→</span></div>
+    </a>
+
+    <a class="fund-card" href="multiagro/index.html">
+      <div class="card-accent"></div>
+      <div class="card-body">
+        <div class="card-eyebrow">Relatório mais recente · Jul/26</div>
+        <div class="card-title">Multiagro FIDC</div>
+        <div class="card-tag">Recebíveis diretos (agronegócio) · CNPJ 32.388.135/0001-62</div>
+        <div class="card-stats">
+          <div class="stat-item">
+            <span class="stat-label">Rentabilidade</span>
+            <span class="stat-val pos">+9,44%</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">CVNP</span>
+            <span class="stat-val pos">1,95%</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">PL</span>
+            <span class="stat-val">R$ 1.328,3 Mi</span>
+          </div>
+        </div>
+        <div class="card-desc">Fechado para novos aportes desde mai/2026. PL em máximo histórico.</div>
+      </div>
+      <div class="card-footer"><span class="card-arrow">→</span></div>
+    </a>
+
+  </div>
+
+</main>
+
+<!-- ── FOOTER ──────────────────────────────────────────────────────── -->
+<footer>
+  <div class="inner">
+    <p>Relatórios de monitoramento — Carteira Z · Uso interno e confidencial</p>
+  </div>
+</footer>
+
+</body>
+</html>

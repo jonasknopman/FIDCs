@@ -1,0 +1,757 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Como Ler os Relatórios — Multiagro FIDC</title>
+<style>
+  /* ── Reset & Base ───────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg:       #F5F4F0;
+    --card:     #FFFFFF;
+    --navy:     #1A2744;
+    --green:    #1E5C3A;
+    --green-lt: #D1FAE5;
+    --red:      #AE1C1C;
+    --red-lt:   #FEE2E2;
+    --amber:    #92400E;
+    --amber-lt: #FEF3C7;
+    --slate:    #4B5563;
+    --muted:    #9CA3AF;
+    --rule:     #E5E3DC;
+    --font-display: Georgia, 'Times New Roman', serif;
+    --font-body:    system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-data:    'SF Mono', 'Fira Code', 'Courier New', monospace;
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--navy);
+    font-size: 15px;
+    line-height: 1.65;
+  }
+
+  /* ── Layout ─────────────────────────────────────── */
+  .container { max-width: 860px; margin: 0 auto; padding: 0 24px; }
+  .container-wide { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+
+  /* ── Header ─────────────────────────────────────── */
+  header {
+    background: var(--navy);
+    padding: 18px 0;
+    position: sticky; top: 0; z-index: 100;
+  }
+  header .inner {
+    max-width: 1100px; margin: 0 auto; padding: 0 24px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .wordmark {
+    font-family: var(--font-body);
+    font-size: 13px; font-weight: 700; letter-spacing: .12em;
+    text-transform: uppercase; color: #fff; opacity: .85;
+  }
+  .wordmark span { color: #6EE7B7; opacity: 1; }
+  nav a {
+    color: #fff; opacity: .6; text-decoration: none;
+    font-size: 12px; letter-spacing: .06em; text-transform: uppercase;
+    margin-left: 24px; transition: opacity .15s;
+  }
+  nav a:hover { opacity: 1; }
+
+  /* ── Hero ───────────────────────────────────────── */
+  .hero {
+    background: var(--navy);
+    padding: 56px 0 48px;
+    border-bottom: 3px solid #2D6A4F;
+  }
+  .hero .eyebrow {
+    font-size: 11px; letter-spacing: .18em; text-transform: uppercase;
+    color: #6EE7B7; margin-bottom: 14px;
+  }
+  .hero h1 {
+    font-family: var(--font-display);
+    font-size: clamp(28px, 5vw, 44px);
+    font-weight: normal; color: #fff;
+    line-height: 1.15; margin-bottom: 8px;
+  }
+  .hero .subtitle {
+    color: #94A3B8; font-size: 13px; margin-bottom: 48px;
+  }
+  .hero-stats {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 1px; background: rgba(255,255,255,.1);
+    border: 1px solid rgba(255,255,255,.1); border-radius: 6px;
+    overflow: hidden;
+  }
+  .stat {
+    background: rgba(255,255,255,.04);
+    padding: 20px 24px;
+  }
+  .stat-label {
+    font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+    color: #94A3B8; margin-bottom: 6px;
+  }
+  .stat-value {
+    font-family: var(--font-display);
+    font-size: clamp(26px, 4vw, 38px);
+    font-weight: normal; line-height: 1;
+  }
+  .stat-value.neg  { color: #FCA5A5; }
+  .stat-value.warn { color: #FCD34D; }
+  .stat-value.pos  { color: #6EE7B7; }
+  .stat-note {
+    font-size: 11px; color: #64748B; margin-top: 4px;
+  }
+
+  /* ── Sections ───────────────────────────────────── */
+  section { padding: 52px 0; border-bottom: 1px solid var(--rule); }
+  section:last-of-type { border-bottom: none; }
+  .section-label {
+    font-size: 10px; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 6px;
+  }
+  h2 {
+    font-family: var(--font-display);
+    font-size: 24px; font-weight: normal;
+    color: var(--navy); margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--navy);
+  }
+  h3 {
+    font-size: 15px; font-weight: 700;
+    color: var(--navy); margin: 28px 0 10px;
+  }
+  h3.pos { color: var(--green); }
+  h3.neg { color: var(--red); }
+  h3.warn { color: var(--amber); }
+  p { color: var(--slate); margin-bottom: 14px; }
+  p strong { color: var(--navy); }
+  ul { margin: 8px 0 16px 20px; }
+  li { color: var(--slate); margin-bottom: 8px; }
+  li strong { color: var(--navy); }
+
+  /* ── Scorecard ──────────────────────────────────── */
+  .scorecard {
+    width: 100%; border-collapse: collapse;
+    font-size: 13px; margin: 8px 0 4px;
+    border: 1px solid var(--rule); border-radius: 6px;
+    overflow: hidden;
+  }
+  .scorecard thead tr { background: var(--navy); }
+  .scorecard thead th {
+    color: #fff; padding: 10px 12px; text-align: left;
+    font-size: 11px; font-weight: 600; letter-spacing: .06em;
+    text-transform: uppercase;
+  }
+  .scorecard thead th:not(:first-child) { text-align: center; }
+  .scorecard tbody tr { border-top: 1px solid var(--rule); }
+  .scorecard tbody tr:nth-child(even) { background: #FAFAF8; }
+  .scorecard td { padding: 9px 12px; }
+  .scorecard td:first-child { font-weight: 600; color: var(--navy); }
+  .scorecard td:not(:first-child) { text-align: center; font-family: var(--font-data); font-size: 12px; }
+  .tag {
+    display: inline-block; padding: 2px 8px; border-radius: 3px;
+    font-size: 11px; font-weight: 700; letter-spacing: .04em;
+    text-transform: uppercase; white-space: nowrap;
+  }
+  .tag-pos  { background: var(--green-lt); color: var(--green); }
+  .tag-neg  { background: var(--red-lt);   color: var(--red); }
+  .tag-warn { background: var(--amber-lt); color: var(--amber); }
+  .tag-muted{ background: #F3F4F6; color: #6B7280; }
+
+  /* ── Alert box ──────────────────────────────────── */
+  .alert {
+    border-left: 4px solid var(--red);
+    background: var(--red-lt);
+    padding: 18px 20px; border-radius: 0 6px 6px 0;
+    margin: 24px 0;
+  }
+  .alert-title {
+    font-size: 13px; font-weight: 700; color: var(--red);
+    margin-bottom: 6px; text-transform: uppercase; letter-spacing: .06em;
+  }
+  .alert p { color: #7F1D1D; margin: 0; font-size: 14px; }
+
+  /* ── Monitor items ──────────────────────────────── */
+  .monitor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+  .monitor-item {
+    background: var(--card); border: 1px solid var(--rule);
+    border-radius: 6px; padding: 16px 18px;
+  }
+  .monitor-num {
+    font-size: 11px; font-weight: 700; letter-spacing: .1em;
+    color: var(--muted); text-transform: uppercase; margin-bottom: 4px;
+  }
+  .monitor-title { font-weight: 700; color: var(--navy); margin-bottom: 8px; }
+  .monitor-expect { font-size: 13px; color: var(--green); margin-bottom: 4px; }
+  .monitor-alert  { font-size: 13px; color: var(--red); }
+  .monitor-expect::before { content: "▲ "; font-size: 10px; }
+  .monitor-alert::before  { content: "▼ "; font-size: 10px; }
+
+  /* ── Charts section ─────────────────────────────── */
+  .charts-section {
+    background: #F0EFE9;
+    border-top: 3px solid var(--navy);
+    padding: 52px 0;
+  }
+  .charts-section h2 { border-color: var(--navy); }
+  .chart-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 28px; margin-top: 24px;
+  }
+  .chart-card {
+    background: var(--card);
+    border: 1px solid var(--rule); border-radius: 6px;
+    overflow: hidden;
+  }
+  .chart-card.full { grid-column: 1; }
+  .chart-label {
+    padding: 10px 14px;
+    display: flex; align-items: center; gap: 10px;
+    border-bottom: 1px solid var(--rule);
+    background: #FAFAF8;
+  }
+  .chart-num {
+    font-size: 10px; font-weight: 700; letter-spacing: .12em;
+    color: #fff; background: var(--navy);
+    padding: 2px 7px; border-radius: 3px;
+  }
+  .chart-title { font-size: 12px; font-weight: 600; color: var(--navy); }
+  .chart-card img {
+    display: block; width: 100%; height: auto;
+  }
+
+  /* ── Footer ─────────────────────────────────────── */
+  footer {
+    background: var(--navy); padding: 28px 0;
+  }
+  footer .inner {
+    max-width: 1100px; margin: 0 auto; padding: 0 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px;
+  }
+  footer p { color: #64748B; font-size: 12px; margin: 0; }
+  footer .wordmark { font-size: 12px; }
+
+  /* ── Responsive ─────────────────────────────────── */
+  @media (max-width: 640px) {
+    .hero-stats { grid-template-columns: 1fr; }
+    .monitor-grid { grid-template-columns: 1fr; }
+    nav { display: none; }
+  }
+
+  @media print {
+    header { position: static; background: var(--navy); -webkit-print-color-adjust: exact; }
+    .hero { -webkit-print-color-adjust: exact; }
+    .chart-card { break-inside: avoid; }
+  }
+
+  /* ── Guia de leitura — componentes adicionais ────── */
+  .tip {
+    border-left: 4px solid var(--green);
+    background: var(--green-lt);
+    padding: 18px 20px; border-radius: 0 6px 6px 0;
+    margin: 16px 0;
+  }
+  .tip-title {
+    font-size: 13px; font-weight: 700; color: var(--green);
+    margin-bottom: 6px; text-transform: uppercase; letter-spacing: .06em;
+  }
+  .tip p { color: #14532D; margin: 0; font-size: 14px; }
+  .chart-explainer {
+    background: var(--card); border: 1px solid var(--rule);
+    border-radius: 6px; padding: 22px 24px; margin-bottom: 22px;
+  }
+  .chart-explainer-head {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 14px;
+  }
+  .chart-explainer-head h3 { margin: 0; font-size: 17px; font-family: var(--font-display); font-weight: normal; }
+  .glossary-table, .metrics-table, .checklist-table {
+    width: 100%; border-collapse: collapse; font-size: 13px;
+    margin: 8px 0 4px; border: 1px solid var(--rule); border-radius: 6px; overflow: hidden;
+  }
+  .glossary-table th, .metrics-table th, .checklist-table th {
+    background: var(--navy); color: #fff; padding: 10px 12px; text-align: left;
+    font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+  }
+  .glossary-table td, .metrics-table td, .checklist-table td {
+    padding: 9px 12px; border-top: 1px solid var(--rule); color: var(--slate); vertical-align: top;
+  }
+  .glossary-table tr:nth-child(even) td, .metrics-table tbody tr:nth-child(even) td, .checklist-table tr:nth-child(even) td { background: #FAFAF8; }
+  .glossary-table td:first-child, .metrics-table td:first-child { font-weight: 600; color: var(--navy); white-space: nowrap; }
+  .checklist-table td.num {
+    font-family: var(--font-data); text-align: center; color: var(--muted); width: 36px;
+  }
+  .checklist-table td.ref { color: var(--muted); font-size: 12px; white-space: nowrap; }
+  .back-link {
+    display: inline-block; margin-bottom: 18px; font-size: 12px;
+    color: var(--muted); text-decoration: none; letter-spacing: .04em;
+  }
+  .back-link:hover { color: var(--navy); }
+  .convencoes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0 8px; }
+  .convencao-item { background: var(--card); border: 1px solid var(--rule); border-radius: 6px; padding: 14px 16px; }
+  .convencao-item .k { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 4px; }
+  @media (max-width: 640px) { .convencoes-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ──────────────────────────────────────────────────────── -->
+<header>
+  <div class="inner">
+    <div class="wordmark"><img src="data:image/jpeg;base64,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" alt="Carteira Z" style="height:30px;display:block;background:#fff;padding:4px 10px;border-radius:4px;"></div>
+    <nav>
+      <a href="index.html">← Índice</a>
+      <a href="#introducao">Introdução</a>
+      <a href="#convencoes">Convenções</a>
+      <a href="#graficos">Gráficos</a>
+      <a href="#metricas">Métricas</a>
+      <a href="#checklist">Checklist</a>
+      <a href="#glossario">Glossário</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ── HERO ────────────────────────────────────────────────────────── -->
+<div class="hero">
+  <div class="container">
+    <img src="data:image/jpeg;base64,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" alt="Carteira Z" style="height:52px;display:block;background:#fff;padding:6px 14px;border-radius:6px;margin-bottom:28px;">
+    <div class="eyebrow">Multiagro FIDC · CNPJ 32.388.135/0001-62</div>
+    <h1>Como Ler os Relatórios</h1>
+    <p class="subtitle">Guia de interpretação dos gráficos e métricas dos relatórios mensais &ensp;·&ensp; Uso interno</p>
+  </div>
+</div>
+
+<!-- ── INTRODUÇÃO ──────────────────────────────────────────────────── -->
+<section id="introducao">
+  <div class="container">
+    <a class="back-link" href="../index.html">&larr; Voltar aos relatórios</a>
+    <div class="section-label">01 — Introdução</div>
+    <h2>Sobre este guia</h2>
+    <p>Este guia descreve cada gráfico e cada métrica produzidos automaticamente a cada mês, a partir da planilha enviada pelos gestores do Multiagro FIDC. O objetivo é orientar qualquer leitor dos relatórios mensais sobre o que cada visualização mede, como lê-la corretamente, e quais padrões costumam acender um sinal de atenção.</p>
+    <p><strong>O que é o Multiagro FIDC?</strong> Um Fundo de Investimento em Direitos Creditórios (FIDC) com lastro em operações do agronegócio. O fundo compra recebíveis de cedentes rurais (produtores, cooperativas, tradings) cujos sacados são principalmente empresas compradoras de commodities. A carteira é composta principalmente por CCBs, Notas Comerciais, CRAs, Duplicatas e contratos de exportação.</p>
+    <p><strong>Estrutura do relatório mensal.</strong> A cada mês os gestores enviam uma planilha atualizada com as séries históricas do fundo. A partir dela geramos automaticamente 12 gráficos individuais, um painel-resumo interno e um bloco de métricas — os 12 gráficos e as tabelas de métricas compõem o relatório publicado; o painel-resumo é de uso interno e não é publicado.</p>
+  </div>
+</section>
+
+<!-- ── CONVENÇÕES ──────────────────────────────────────────────────── -->
+<section id="convencoes">
+  <div class="container">
+    <div class="section-label">02 — Convenções</div>
+    <h2>Como Ler os Gráficos</h2>
+    <p>Todos os gráficos compartilham as mesmas convenções visuais:</p>
+    <div class="convencoes-grid">
+      <div class="convencao-item"><div class="k">Eixo X</div>Sempre representa o tempo (meses). O gráfico cobre todo o histórico disponível, desde dez/2022.</div>
+      <div class="convencao-item"><div class="k">Eixo Y</div>A unidade está indicada no rótulo do eixo (R$ Mi, %, dias úteis etc.).</div>
+      <div class="convencao-item"><div class="k">Cores</div>Verde indica saúde/crescimento; amarelo indica atenção; vermelho indica deterioração ou risco; azul indica exposição sênior.</div>
+      <div class="convencao-item"><div class="k">Painel interno</div>Um painel com os 6 gráficos mais estratégicos existe para uso interno da Carteira Z, mas não faz parte do relatório publicado.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── GRÁFICOS ────────────────────────────────────────────────────── -->
+<div class="charts-section" id="graficos">
+  <div class="container">
+    <div class="section-label">03 — Gráfico a Gráfico</div>
+    <h2>Os 12 Gráficos do Relatório</h2>
+    <p style="margin-bottom:24px;">Cada card abaixo corresponde a um dos gráficos publicados no relatório mensal, na mesma numeração usada nos arquivos de origem.</p>
+
+    <div class="chart-explainer" id="grafico-01">
+      <div class="chart-explainer-head">
+        <span class="chart-num">01</span>
+        <h3>Patrimônio Líquido por Classe</h3>
+      </div>
+      <p><strong>O que mostra:</strong> Evolução do PL total do fundo ao longo do tempo, decomposto em três classes de cotas: Sênior (azul), Mezanino (amarelo) e Junior (verde). A linha tracejada preta representa o PL total consolidado.</p>
+      <p style="margin-bottom:6px;"><strong>Como interpretar:</strong></p>
+      <ul>
+        <li>O crescimento consistente da área empilhada indica que o fundo está captando e retendo investidores.</li>
+        <li>A proporção entre as classes revela a estrutura de capital do fundo em cada momento.</li>
+        <li><strong>Cota Sênior</strong> (azul): a mais conservadora, com preferência no resgate e no pagamento de rendimentos.</li>
+        <li><strong>Cota Mezanino</strong> (amarelo): risco intermediário, subordinada à Sênior.</li>
+        <li><strong>Cota Junior</strong> (verde): a mais arriscada — absorve as primeiras perdas, mas captura os maiores ganhos.</li>
+      </ul>
+      <p style="margin-bottom:6px;"><strong>O que observar:</strong></p>
+      <ul>
+        <li>O PL deve crescer de forma constante, refletindo captação líquida positiva e rendimento reinvestido.</li>
+        <li>Quedas pontuais no PL total podem indicar resgates relevantes ou perdas realizadas.</li>
+      </ul>
+      <div class="alert">
+        <div class="alert-title">Sinais de Alerta</div>
+        <p>Queda abrupta do PL total em mais de 15% em um único mês, sem aporte equivalente, pode sinalizar resgate concentrado ou deterioração de carteira. Redução da Cota Junior abaixo de 14% do PL diminui o colchão de proteção dos cotistas Sênior.</p>
+      </div>
+    </div>
+
+    <div class="chart-explainer" id="grafico-02">
+      <div class="chart-explainer-head">
+        <span class="chart-num">02</span>
+        <h3>Rentabilidade Mensal da Cota Subordinada</h3>
+      </div>
+      <p><strong>O que mostra:</strong> Retorno mensal da Cota Subordinada (Junior) em percentual ao mês. Barras verdes representam meses positivos; barras vermelhas, meses negativos.</p>
+      <p style="margin-bottom:6px;"><strong>Como interpretar:</strong></p>
+      <ul>
+        <li>É o termômetro mais direto da performance do fundo para o cotista Junior.</li>
+        <li>Meses muito acima da média costumam coincidir com alto volume de originação, boa safra ou marcação a mercado favorável.</li>
+        <li>Meses negativos são raros em carteiras saudáveis, mas podem ocorrer em eventos de estresse (provisões elevadas, write-offs, ajustes cambiais).</li>
+      </ul>
+      <p style="margin-bottom:6px;"><strong>O que observar:</strong></p>
+      <ul>
+        <li>Tendência de queda ao longo do tempo pode indicar pressão de margem.</li>
+        <li>Alta volatilidade mensal merece investigação — pode indicar carteira concentrada ou ajustes extraordinários.</li>
+      </ul>
+      <div class="alert">
+        <div class="alert-title">Sinais de Alerta</div>
+        <p>Mês negativo isolado merece investigação imediata. Dois ou mais meses negativos consecutivos são sinal crítico de deterioração. Rentabilidade persistentemente abaixo de 1,0% a.m. pode não cobrir o custo de captação da cota Sênior.</p>
+      </div>
+    </div>
+
+    <div class="chart-explainer" id="grafico-03">
+      <div class="chart-explainer-head">
+        <span class="chart-num">03</span>
+        <h3>Retorno Acumulado desde o Início</h3>
+      </div>
+      <p><strong>O que mostra:</strong> Fator de crescimento acumulado da Cota Subordinada desde o primeiro mês do histórico (base 1,0). O rótulo no ponto final indica o ganho percentual total desde o início.</p>
+      <p style="margin-bottom:6px;"><strong>Como interpretar:</strong></p>
+      <ul>
+        <li>Um fator de 3,0 significa que R$ 1,00 investido no início se tornou R$ 3,00 — um ganho de 200%.</li>
+        <li>A curva deve ser suavemente crescente; quedas ou estagnações prolongadas são sinais de estresse.</li>
+        <li>O cálculo usa composição geométrica (multiplicação de fatores mensais), não soma aritmética.</li>
+      </ul>
+      <p style="margin-bottom:6px;"><strong>O que observar:</strong></p>
+      <ul>
+        <li>Compare a inclinação atual da curva com a inclinação histórica média — um achatamento recente pode preceder uma reversão.</li>
+        <li>O retorno acumulado deve superar o CDI acumulado equivalente para justificar o risco do FIDC.</li>
+      </ul>
+      <div class="tip">
+        <div class="tip-title">Boa Prática</div>
+        <p>Quando os gestores informarem o CDI acumulado do período, este gráfico passa a incluir uma linha de benchmark para comparação direta.</p>
+      </div>
+    </div>
+
+    <div class="chart-explainer" id="grafico-04">
+      <div class="chart-explainer-head">
+        <span class="chart-num">04</span>
+        <h3>Inadimplência (CVNP) e Provisão (PDD)</h3>
+      </div>
+      <p><strong>O que mostra:</strong> Dois indicadores sobrepostos, ambos como percentual da Carteira: <strong>CVNP</strong> (Créditos Vencidos Não Pagos, linha vermelha) — parcela da carteira vencida e ainda não paga; e <strong>PDD</strong> (Provisão para Devedores Duvidosos, linha laranja tracejada) — quanto o fundo já provisionou para cobrir perdas potenciais.</p>
+      <p style="margin-bottom:6px;"><strong>Como interpretar:</strong></p>
+      <ul>
+        <li>O CVNP reflete o fluxo de caixa atual: quanto maior, maior a pressão sobre a liquidez do fundo.</li>
+        <li>A PDD reflete a expectativa de perda permanente — é um custo já reconhecido contabilmente.</li>
+        <li><strong>Cobertura = PDD / CVNP:</strong> indica que fração da inadimplência já está provisionada. Perto de 100% significa que o fundo já reconheceu praticamente toda a perda esperada.</li>
+      </ul>
+      <p style="margin-bottom:6px;"><strong>O que observar:</strong></p>
+      <ul>
+        <li>CVNP em queda junto com PDD estável é o cenário ideal — créditos vencidos sendo recuperados.</li>
+        <li>CVNP crescente com PDD estagnada é sinal de possível subprovisão.</li>
+      </ul>
+      <div class="alert">
+        <div class="alert-title">Sinais de Alerta</div>
+        <p>CVNP acima de 5% da carteira demanda atenção; acima de 10% é situação crítica. Cobertura abaixo de 20% indica que o fundo pode precisar de provisões adicionais, impactando a rentabilidade. CVNP crescendo por três ou mais meses consecutivos é tendência preocupante.</p>
+      </div>
+    </div>
+
+    <div class="chart-explainer" id="grafico-05">
+      <div class="chart-explainer-head">
+        <span class="chart-num">05</span>
+        <h3>Aging da Carteira</h3>
+      </div>
+      <p><strong>O que mostra:</strong> Composição da carteira por faixa de prazo até o vencimento, empilhada em percentual do total: à vencer, até 10 dias, 11–30, 31–60, 61–90, 91–120 dias, e acima de 120 dias (inadimplência severa).</p>
+      <p style="margin-bottom:6px;"><strong>Como interpretar:</strong></p>
+      <ul>
+        <li>O ideal é que "à vencer" domine amplamente o gráfico — acima de 90% da carteira.</li>
+        <li>As faixas mais quentes (laranja e vermelho) representam créditos em atraso ou em risco.</li>
+        <li>Um alargamento progressivo das faixas de atraso ao longo do tempo indica deterioração sistêmica da qualidade da carteira.</li>
+      </ul>
+      <p style="margin-bottom:6px;"><strong>O que observar:</strong></p>
+      <ul>
+        <li>Observe se os créditos em atraso "migram" para faixas mais longas mês a mês — indica baixa taxa de recuperação.</li>
+        <li>Picos pontuais acima de 120 dias podem preceder write-offs.</li>
+      </ul>
+      <div class="alert">
+        <div class="alert-title">Sinais de Alerta</div>
+        <p>Quando as faixas de atraso (acima de 10 dias) somadas ultrapassam 8–10% da carteira, o fundo está sob estresse relevante. Crescimento persistente acima de 120 dias é o sinal mais grave — esses créditos raramente são recuperados integralmente.</p>
+      </div>
+    </div>
+
+    <div class="chart-explainer" id="grafico-06">
+      <div class="chart-explainer-head">
+        <span class="chart-num">06</span>
+        <h3>Concentração: Cedentes e Sacados</h3>
+      </div>
+      <p><strong>O que mostra:</strong> Evolução da concentração da carteira nos maiores cedentes (originadores dos créditos) e nos maiores sacados (devedores finais), como percentual do PL — três curvas para cada grupo: Top 1, Top 5 e Top 10.</p>
+      <p style="margin-bottom:6px;"><strong>Como interpretar:</strong></p>
+      <ul>
+        <li><strong>Cedentes</strong> vendem os recebíveis ao fundo (produtores rurais, cooperativas, tradings). <strong>Sacados</strong> são os devedores finais (compradores de grãos, frigoríficos, exportadoras).</li>
+        <li>Quanto mais altas as curvas, maior a dependência do fundo em poucos agentes.</li>
+        <li>A tendência das curvas ao longo do tempo é tão importante quanto seus níveis absolutos.</li>
+      </ul>
+      <p style="margin-bottom:6px;"><strong>O que observar:</strong></p>
+      <ul>
+        <li>Top 1 Cedente acima de 20% do PL indica risco de cedente individual relevante.</li>
+        <li>Top 5 Cedentes acima de 50% do PL indica carteira pouco diversificada na originação.</li>
+      </ul>
+      <div class="alert">
+        <div class="alert-title">Sinais de Alerta</div>
+        <p>Top 1 Cedente acima de 20% do PL é concentração crítica — o inadimplemento desse agente pode comprometer a capacidade de pagamento das cotas. Concentração crescente do Top 5 em períodos de queda do PL pode indicar que a base ativa de cedentes está diminuindo, mesmo com PL estável.</p>
+      </div>
+    </div>
+
+    <div class="chart-explainer" id="grafico-07">
+      <div class="chart-explainer-head">
+        <span class="chart-num">07</span>
+        <h3>VOP e Taxa Média de Originação</h3>
+      </div>
+      <p><strong>O que mostra:</strong> Dois indicadores com eixos duplos: <strong>VOP</strong> — Volume de Operações do Período (barras roxas), quanto o fundo originou naquele mês em R$ milhões; e a <strong>taxa média</strong> das operações (linha laranja), taxa de juros média embutida nos recebíveis comprados, em % ao mês.</p>
+      <p style="margin-bottom:6px;"><strong>Como interpretar:</strong></p>
+      <ul>
+        <li>O VOP é o motor do fundo — sem originação consistente, a carteira envelhece e encolhe.</li>
+        <li>A taxa média reflete o spread que o fundo consegue capturar; taxas mais altas geralmente significam maior risco de crédito ou menor concorrência.</li>
+        <li>VOP alto com taxa baixa pode sinalizar que o fundo está aceitando operações menos rentáveis para crescer.</li>
+      </ul>
+      <p style="margin-bottom:6px;"><strong>O que observar:</strong></p>
+      <ul>
+        <li>Sazonalidade agrícola é esperada: volumes maiores nas safras (nov–mar), menores na entressafra (abr–set).</li>
+        <li>Compare o VOP mensal com o tamanho da carteira — o giro anual deve ser compatível com o prazo médio dos títulos.</li>
+      </ul>
+      <div class="alert">
+        <div class="alert-title">Sinais de Alerta</div>
+        <p>Taxa média caindo consistentemente abaixo de 1,5% a.m. pode comprimir o spread do fundo. VOP muito baixo por dois ou mais meses consecutivos (abaixo de 30% da média histórica) pode sinalizar dificuldade de originação ou saída de cedentes relevantes.</p>
+      </div>
+    </div>
+
+    <div class="chart-explainer" id="grafico-08">
+      <div class="chart-explainer-head">
+        <span class="chart-num">08</span>
+        <h3>TIR Média e Prazo Médio da Carteira</h3>
+      </div>
+      <p><strong>O que mostra:</strong> Dois subgráficos empilhados: <strong>TIR média</strong> da carteira à vencer (topo) — retorno esperado se todos os créditos forem pagos, em % ao ano; e <strong>prazo médio</strong> da carteira (base) — duração média em dias úteis dos títulos em aberto.</p>
+      <p style="margin-bottom:6px;"><strong>Como interpretar:</strong></p>
+      <ul>
+        <li>A TIR média é o "potencial bruto" da carteira — deve superar confortavelmente o custo da cota Sênior mais as despesas do fundo.</li>
+        <li>O prazo médio indica risco de duration: prazos mais longos aumentam a exposição a variações de mercado e a risco de liquidez.</li>
+        <li>TIR alta com prazo longo não é necessariamente boa — implica maior risco de crédito e de mercado ao longo do tempo.</li>
+      </ul>
+      <p style="margin-bottom:6px;"><strong>O que observar:</strong></p>
+      <ul>
+        <li>TIR e prazo devem ter correlação positiva — se o prazo cair, a TIR também tende a cair.</li>
+        <li>Queda da TIR sem redução correspondente do prazo pode indicar piora nas condições de negociação.</li>
+      </ul>
+      <div class="alert">
+        <div class="alert-title">Sinais de Alerta</div>
+        <p>TIR média abaixo de 20% a.a. começa a comprimir o resultado do fundo no ambiente de juros brasileiro. Prazo médio acima de 400 dias úteis implica carteira muito longa. TIR caindo enquanto o prazo sobe é combinação desfavorável que merece discussão com os gestores.</p>
+      </div>
+    </div>
+
+    <div class="chart-explainer" id="grafico-09">
+      <div class="chart-explainer-head">
+        <span class="chart-num">09</span>
+        <h3>Número de Cedentes e Sacados</h3>
+      </div>
+      <p><strong>O que mostra:</strong> Evolução mensal do número de cedentes ativos (linha verde) e sacados ativos (linha azul tracejada) na carteira de fechamento do mês.</p>
+      <p style="margin-bottom:6px;"><strong>Como interpretar:</strong></p>
+      <ul>
+        <li>Um número crescente de cedentes indica que o fundo está atraindo novos fornecedores de crédito e reduzindo concentração.</li>
+        <li>Um número crescente de sacados indica diversificação do risco de crédito.</li>
+        <li>Os dois indicadores devem crescer ao longo do tempo à medida que o fundo escala.</li>
+      </ul>
+      <p style="margin-bottom:6px;"><strong>O que observar:</strong></p>
+      <ul>
+        <li>A relação Sacados/Cedentes indica quantos devedores, em média, cada cedente traz — uma queda pode sinalizar concentração na ponta compradora.</li>
+        <li>Quedas abruptas no número de cedentes (10%+ em um mês) podem indicar saída de parceiros relevantes.</li>
+      </ul>
+      <div class="alert">
+        <div class="alert-title">Sinais de Alerta</div>
+        <p>Queda no número de cedentes por dois meses consecutivos merece contato com a gestão. Número de sacados muito baixo (abaixo de 100) com carteira acima de R$ 500 Mi indica concentração elevada no lado dos devedores.</p>
+      </div>
+    </div>
+
+    <div class="chart-explainer" id="grafico-10">
+      <div class="chart-explainer-head">
+        <span class="chart-num">10</span>
+        <h3>Estrutura de Capital (Alavancagem)</h3>
+      </div>
+      <p><strong>O que mostra:</strong> Composição do PL total entre Cota Sênior (azul) e Cota Subordinada — Junior + Mezanino (laranja), em percentual do PL. A linha pontilhada marca o nível de 50%.</p>
+      <p style="margin-bottom:6px;"><strong>Como interpretar:</strong></p>
+      <ul>
+        <li>O tamanho da fatia subordinada determina o colchão de proteção da cota Sênior.</li>
+        <li><strong>Índice de alavancagem = PL Subordinado / PL Total.</strong> Quanto maior, mais proteção a cota Sênior tem, mas menor o rendimento potencial da cota Junior.</li>
+        <li>O regulamento do fundo define limites mínimos para a parcela subordinada — ficar próximo do limite mínimo é sinal de atenção regulatório.</li>
+      </ul>
+      <p style="margin-bottom:6px;"><strong>O que observar:</strong></p>
+      <ul>
+        <li>A parcela subordinada deve se manter estável ou crescente; queda progressiva indica que o fundo cresce mais pelo lado Sênior, reduzindo o colchão.</li>
+        <li>Grandes variações mensais na proporção podem indicar chamadas de capital ou resgates assimétricos.</li>
+      </ul>
+      <div class="alert">
+        <div class="alert-title">Sinais de Alerta</div>
+        <p>Se a parcela subordinada cair consistentemente abaixo de 48% do PL, o fundo se aproxima dos limites regulatórios. Abaixo de 45% pode exigir chamada de capital dos cotistas Juniores ou restrição de novas emissões Sênior.</p>
+      </div>
+    </div>
+
+    <div class="chart-explainer" id="grafico-11">
+      <div class="chart-explainer-head">
+        <span class="chart-num">11</span>
+        <h3>Composição da Carteira por Instrumento</h3>
+      </div>
+      <p><strong>O que mostra:</strong> Evolução da composição da carteira por tipo de instrumento de crédito, em percentual do total: CCB + NC (azul), Duplicata (verde), CRA (amarelo), Exportação — ACC/ACE/NCE (laranja), e CDA/WA + CPR (roxo).</p>
+      <p style="margin-bottom:6px;"><strong>Como interpretar:</strong></p>
+      <ul>
+        <li>CCB e Notas Comerciais são instrumentos de crédito direto, geralmente com boa documentação e garantias.</li>
+        <li>Duplicatas têm maior risco operacional, mas alta liquidez quando performadas.</li>
+        <li>CRA são instrumentos securitizados, geralmente com melhores garantias e isenção fiscal.</li>
+        <li>Contratos de exportação expõem o fundo à variação cambial, mas costumam ter melhor qualidade de crédito.</li>
+      </ul>
+      <p style="margin-bottom:6px;"><strong>O que observar:</strong></p>
+      <ul>
+        <li>Uma carteira bem diversificada entre instrumentos reduz risco de concentração setorial.</li>
+        <li>Crescimento de CCB + NC costuma ser positivo; crescimento acelerado de Duplicatas merece atenção pela maior complexidade operacional.</li>
+      </ul>
+      <div class="alert">
+        <div class="alert-title">Sinais de Alerta</div>
+        <p>Concentração acima de 70% em um único tipo de instrumento aumenta o risco de crédito e operacional. Crescimento rápido de instrumentos menos comuns (CDA/WA, CPR) sem justificativa clara pode indicar mudança de estratégia.</p>
+      </div>
+    </div>
+
+    <div class="chart-explainer" id="grafico-12">
+      <div class="chart-explainer-head">
+        <span class="chart-num">12</span>
+        <h3>Write-Off Acumulado</h3>
+      </div>
+      <p><strong>O que mostra:</strong> Valor acumulado de write-offs (baixas definitivas de créditos irrecuperáveis) desde o início do fundo, em R$ milhões. O gráfico usa uma função escalonada: o valor só sobe quando novos write-offs são registrados.</p>
+      <p style="margin-bottom:6px;"><strong>Como interpretar:</strong></p>
+      <ul>
+        <li>Write-off é a materialização definitiva da perda — o momento em que o fundo reconhece que aquele crédito não será recuperado.</li>
+        <li>O ritmo de crescimento da curva é mais importante que o nível absoluto: uma curva plana por muitos meses seguida de salto súbito pode indicar perdas represadas.</li>
+        <li>O write-off acumulado deve ser comparado ao PL histórico para avaliar a perda percentual total sofrida pelo fundo.</li>
+      </ul>
+      <p style="margin-bottom:6px;"><strong>O que observar:</strong></p>
+      <ul>
+        <li>Degraus muito grandes em um único mês indicam baixa concentrada — possivelmente um cedente ou sacado relevante em default.</li>
+        <li>A relação write-off / VOP histórico dá uma ideia da taxa de perda permanente do fundo ao longo do tempo.</li>
+      </ul>
+      <div class="alert">
+        <div class="alert-title">Sinais de Alerta</div>
+        <p>Aceleração do ritmo de write-offs (dois ou mais degraus significativos em sequência) é um dos sinais mais graves de deterioração de carteira. Write-off acumulado acima de 2% do PL médio histórico começa a questionar a qualidade da originação.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MÉTRICAS ────────────────────────────────────────────────────── -->
+<section id="metricas">
+  <div class="container">
+    <div class="section-label">04 — Métricas</div>
+    <h2>Métricas Recentes (últimos 6 meses)</h2>
+    <p>Esta tabela resume os valores das principais métricas nos 6 meses mais recentes disponíveis, permitindo uma comparação rápida de evolução sem precisar ler os gráficos individualmente.</p>
+    <table class="metrics-table">
+      <thead><tr><th>Métrica</th><th>O que mede</th><th>Referência saudável</th></tr></thead>
+      <tbody>
+        <tr><td>PL Total (R$ Mi)</td><td>Patrimônio Líquido total do fundo, em R$ milhões.</td><td>Crescimento consistente</td></tr>
+        <tr><td>Carteira (R$ Mi)</td><td>Valor total dos recebíveis em carteira (excluindo caixa e outros ativos).</td><td>≥ 75% do PL</td></tr>
+        <tr><td>Rent. Mensal (%)</td><td>Retorno mensal da Cota Subordinada — rendimento auferido no mês.</td><td>> 1,0% a.m.</td></tr>
+        <tr><td>Ret. Acum. Início (x)</td><td>Fator multiplicador desde o primeiro mês do histórico (1,0 = sem ganho).</td><td>Crescimento contínuo</td></tr>
+        <tr><td>CVNP/Carteira (%)</td><td>Percentual da carteira em atraso (vencido não pago) — inadimplência bruta.</td><td>< 5%</td></tr>
+        <tr><td>PDD/Carteira (%)</td><td>Percentual da carteira já provisionado para perdas esperadas.</td><td>Proporcional ao CVNP</td></tr>
+        <tr><td>Top 1 Cedente (%PL)</td><td>Concentração do maior cedente individual como % do PL.</td><td>< 15%</td></tr>
+        <tr><td>TIR média (% a.a.)</td><td>Retorno esperado médio dos títulos em carteira, caso todos sejam pagos.</td><td>> 22% a.a.</td></tr>
+        <tr><td>VOP mês (R$ Mi)</td><td>Volume originado no mês — quanto o fundo comprou em novos recebíveis.</td><td>Estável ou crescente</td></tr>
+        <tr><td>N Cedentes</td><td>Número de cedentes ativos na carteira de fechamento do mês.</td><td>Crescente</td></tr>
+        <tr><td>N Sacados</td><td>Número de sacados (devedores finais) ativos na carteira.</td><td>Crescente</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:8px; font-size:13px;"><strong>Como usar:</strong> leia as colunas da esquerda para a direita — isso mostra a evolução mês a mês. Uma deterioração progressiva em CVNP, Top 1 Cedente ou Rentabilidade Mensal ao longo de 3 ou mais meses consecutivos é o principal padrão de alerta a identificar nesta tabela.</p>
+
+    <h2 style="margin-top:40px;">Métricas de Tendência (mês mais recente vs. 3 meses antes)</h2>
+    <p>Este bloco compara o valor mais recente de cada métrica com o valor registrado 3 meses antes. <strong>Atenção:</strong> o sinal [+] ou [−] é puramente aritmético — um aumento nem sempre é positivo. Use a tabela abaixo para interpretar a direção correta.</p>
+    <table class="metrics-table">
+      <thead><tr><th>Métrica</th><th>Direção desejável</th><th>Direção preocupante</th></tr></thead>
+      <tbody>
+        <tr><td>PL Total (R$ Mi)</td><td class="tag tag-pos" style="display:table-cell;">[+] Crescimento</td><td class="tag tag-neg" style="display:table-cell;">[−] Queda</td></tr>
+        <tr><td>Carteira (R$ Mi)</td><td class="tag tag-pos" style="display:table-cell;">[+] Crescimento</td><td class="tag tag-neg" style="display:table-cell;">[−] Queda acentuada</td></tr>
+        <tr><td>CVNP/Carteira (%)</td><td class="tag tag-pos" style="display:table-cell;">[−] Redução</td><td class="tag tag-neg" style="display:table-cell;">[+] Aumento</td></tr>
+        <tr><td>PDD/Carteira (%)</td><td class="tag tag-pos" style="display:table-cell;">[−] Redução (com CVNP caindo)</td><td class="tag tag-neg" style="display:table-cell;">[+] Aumento persistente</td></tr>
+        <tr><td>Top 1 Cedente (%PL)</td><td class="tag tag-pos" style="display:table-cell;">[−] Redução</td><td class="tag tag-neg" style="display:table-cell;">[+] Aumento (concentração)</td></tr>
+        <tr><td>Top 5 Cedentes (%PL)</td><td class="tag tag-pos" style="display:table-cell;">[−] Redução</td><td class="tag tag-neg" style="display:table-cell;">[+] Aumento (concentração)</td></tr>
+        <tr><td>TIR média (% a.a.)</td><td class="tag tag-pos" style="display:table-cell;">[+] Manutenção / alta</td><td class="tag tag-neg" style="display:table-cell;">[−] Queda persistente</td></tr>
+        <tr><td>Prazo médio carteira (DU)</td><td class="tag tag-pos" style="display:table-cell;">[−] Redução (menos risco)</td><td class="tag tag-neg" style="display:table-cell;">[+] Aumento excessivo (> 400 du)</td></tr>
+        <tr><td>N Cedentes</td><td class="tag tag-pos" style="display:table-cell;">[+] Crescimento</td><td class="tag tag-neg" style="display:table-cell;">[−] Queda</td></tr>
+        <tr><td>N Sacados</td><td class="tag tag-pos" style="display:table-cell;">[+] Crescimento</td><td class="tag tag-neg" style="display:table-cell;">[−] Queda</td></tr>
+        <tr><td>VOP mês (R$ Mi)</td><td class="tag tag-pos" style="display:table-cell;">[+] Crescimento</td><td class="tag tag-neg" style="display:table-cell;">[−] Queda > 40% sem sazonalidade</td></tr>
+      </tbody>
+    </table>
+    <div class="tip" style="margin-top:20px;">
+      <div class="tip-title">Boa Prática</div>
+      <p>O modo mais eficiente de usar as Métricas de Tendência é combiná-las com o Gráfico 04 (Inadimplência) e o Gráfico 06 (Concentração). Se CVNP está subindo [+] ao mesmo tempo que Top 1 Cedente também sobe [+], isso é uma combinação de alto risco.</p>
+    </div>
+    <p style="margin-top:16px; font-size:13px;"><strong>Nota sobre sazonalidade:</strong> o fundo tem exposição ao agronegócio, que possui ciclos sazonais bem definidos. Quedas de VOP na entressafra (abril a setembro) são esperadas e não configuram sinal de alerta por si sós. O mesmo vale para variações no número de sacados — sempre contextualize a tendência com a época do ano.</p>
+  </div>
+</section>
+
+<!-- ── CHECKLIST ───────────────────────────────────────────────────── -->
+<section id="checklist">
+  <div class="container">
+    <div class="section-label">05 — Metodologia</div>
+    <h2>Checklist Mensal de Revisão</h2>
+    <p>Esta é a lista de verificação que a Carteira Z usa internamente toda vez que um novo mês de dados é incorporado — publicada aqui para transparência sobre como acompanhamos o fundo.</p>
+    <table class="checklist-table">
+      <thead><tr><th>#</th><th>Verificação</th><th>Referência</th></tr></thead>
+      <tbody>
+        <tr><td class="num">1</td><td>PL Total cresceu ou se manteve estável?</td><td class="ref">Gráfico 01</td></tr>
+        <tr><td class="num">2</td><td>Rentabilidade mensal foi positiva?</td><td class="ref">Gráfico 02</td></tr>
+        <tr><td class="num">3</td><td>CVNP/Carteira está abaixo de 5%?</td><td class="ref">Gráfico 04 + Métricas Recentes</td></tr>
+        <tr><td class="num">4</td><td>A cobertura PDD/CVNP é razoável (> 20%)?</td><td class="ref">Gráfico 04 + Métricas Recentes</td></tr>
+        <tr><td class="num">5</td><td>Aging mostra predominância de “à vencer” (> 90%)?</td><td class="ref">Gráfico 05</td></tr>
+        <tr><td class="num">6</td><td>Top 1 Cedente abaixo de 20% do PL?</td><td class="ref">Gráfico 06 + Métricas Recentes</td></tr>
+        <tr><td class="num">7</td><td>VOP do mês é compatível com a sazonalidade esperada?</td><td class="ref">Gráfico 07</td></tr>
+        <tr><td class="num">8</td><td>TIR média se manteve acima de 20% a.a.?</td><td class="ref">Gráfico 08 + Métricas Recentes</td></tr>
+        <tr><td class="num">9</td><td>Número de cedentes está estável ou crescendo?</td><td class="ref">Gráfico 09 + Tendências</td></tr>
+        <tr><td class="num">10</td><td>Parcela subordinada se manteve acima de 48% do PL?</td><td class="ref">Gráfico 10</td></tr>
+        <tr><td class="num">11</td><td>Não houve write-off relevante (degrau > R$ 5 Mi)?</td><td class="ref">Gráfico 12</td></tr>
+        <tr><td class="num">12</td><td>Nas Tendências, CVNP e concentração mostram sinal [−]?</td><td class="ref">Tendências</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ── GLOSSÁRIO ───────────────────────────────────────────────────── -->
+<section id="glossario">
+  <div class="container">
+    <div class="section-label">06 — Referência</div>
+    <h2>Glossário</h2>
+    <table class="glossary-table">
+      <thead><tr><th>Termo</th><th>Definição</th></tr></thead>
+      <tbody>
+        <tr><td>FIDC</td><td>Fundo de Investimento em Direitos Creditórios. Fundo que compra recebíveis (“direitos creditórios”) de empresas ou pessoas físicas.</td></tr>
+        <tr><td>Cedente</td><td>Agente que vende os recebíveis ao fundo. No Multiagro, geralmente produtores rurais, cooperativas ou tradings.</td></tr>
+        <tr><td>Sacado</td><td>Devedor final do recebível — quem deve pagar a dívida. Geralmente comprador de commodities agrícolas.</td></tr>
+        <tr><td>CVNP</td><td>Créditos Vencidos Não Pagos. Parcela da carteira cujo vencimento já passou e o pagamento não foi recebido.</td></tr>
+        <tr><td>PDD</td><td>Provisão para Devedores Duvidosos. Reserva contábil criada para cobrir perdas esperadas com inadimplência.</td></tr>
+        <tr><td>WO / Write-Off</td><td>Baixa definitiva de um crédito considerado irrecuperável. Representa a materialização de uma perda.</td></tr>
+        <tr><td>VOP</td><td>Volume de Operações do Período. Total de recebíveis comprados pelo fundo em um determinado mês.</td></tr>
+        <tr><td>TIR</td><td>Taxa Interna de Retorno. Rendimento esperado de um ativo se mantido até o vencimento e pago integralmente.</td></tr>
+        <tr><td>NDF</td><td>Non-Deliverable Forward. Contrato de derivativo cambial usado para proteção (hedge) contra variação do dólar ou euro.</td></tr>
+        <tr><td>CCB</td><td>Cédula de Crédito Bancário. Instrumento de dívida com força de título executivo.</td></tr>
+        <tr><td>CRA</td><td>Certificado de Recebíveis do Agronegócio. Instrumento securitizado com lastro em operações do agro.</td></tr>
+        <tr><td>CPR</td><td>Cédula de Produto Rural. Título que representa uma promessa de entrega de produto agrícola ou seu equivalente financeiro.</td></tr>
+        <tr><td>CDA/WA</td><td>Certificado de Depósito Agropecuário / Warrant Agropecuário. Títulos lastreados em produtos armazenados.</td></tr>
+        <tr><td>Aging</td><td>Análise de vencimento. Classificação dos ativos por faixa de prazo até (ou após) o vencimento.</td></tr>
+        <tr><td>Prazo médio (DU)</td><td>Duração média dos títulos em carteira, medida em dias úteis.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ── FOOTER ──────────────────────────────────────────────────────── -->
+<footer>
+  <div class="inner">
+    <div class="wordmark"><img src="data:image/jpeg;base64,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" alt="Carteira Z" style="height:30px;display:block;background:#fff;padding:4px 10px;border-radius:4px;"></div>
+    <p>Guia de interpretação dos relatórios do Multiagro FIDC · Uso interno e confidencial</p>
+    <p>Gestora: Multiplica · CNPJ 32.388.135/0001-62</p>
+  </div>
+</footer>
+
+</body>
+</html>
